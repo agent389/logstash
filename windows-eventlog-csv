@@ -1,0 +1,28 @@
+# This config reads in exported windows event log files.  
+# ex "cat data.csv| logstash -f windows-eventlog-csv-splunk.conf"
+# agent389@gmail.com Feb 11 2016
+
+input{
+    stdin{
+        codec => multiline{
+                          pattern => "^[0-9]"
+                          negate => "t"
+                          what => "previous"
+                          }
+      }
+}
+filter{
+    csv{
+      columns => ["Level","time","Source",Event ID","Task Category"]
+    }
+    date{
+      match => ["time", "MM/dd/yyyy HH:mm:ss a"]
+      timezone => "America/Denver"
+      # taken from http://joda-time.sourceforge.net/timezones.html
+    }
+}
+
+output{
+  elasticsearch{}
+  stdout{codec => rubydebug}
+}
